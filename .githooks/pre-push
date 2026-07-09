@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# ─────────────────────────────────────────────────────────────
+#  pre-push — 푸시 전 민감정보(시크릿) 스캔. 발견 시 푸시 차단.
+#  우회(비상용):  ALLOW_SECRETS=1 git push
+# ─────────────────────────────────────────────────────────────
+set -uo pipefail
+
+if [ "${ALLOW_SECRETS:-}" = "1" ]; then
+  echo "⚠️  ALLOW_SECRETS=1 → 시크릿 스캔을 건너뜁니다."
+  exit 0
+fi
+
+EMPTY_TREE="$(git hash-object -t tree /dev/null)"
+
+# 고신뢰 시크릿 패턴 (오탐 최소화)
+PATTERNS='AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIVATE KEY|sk-[A-Za-z0-9]{20,}|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{50,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|aws_secret_access_key[[:space:]]*=[[:space:]]*[A-Za-z0-9/+]{30,}'
+
+found=0
+report=""
+
+while read -r _local_ref local_sha _remote_ref remote_sha; do
+  # 브랜치 삭제 푸시(로컬 sha가 전부 0)면 스킵
+  case "$local_sha" in *[!0]*) : ;; *) continue ;; esac
+
+  # 원격에 없는 새 브랜치면 빈 트리 기준으로 전체 검사, 아니면 증분만
+  case "$remote_sha" in
+    *[!0]*) range="$remote_sha..$local_sha" ;;
+    *)      range="$EMPTY_TREE..$local_sha" ;;
+  esac
+
+  # 1) 추가된 라인에서 시크릿 패턴 검사
+  hits="$(git diff --no-color "$range" 2>/dev/null \
+            | grep -E '^\+' \
+            | grep -En "$PATTERNS" || true)"
+  if [ -n "$hits" ]; then
+    found=1
+    report+="  [시크릿 의심 패턴]\n$hits\n"
+  fi
+
+  # 2) .env 등 민감 파일이 추가/수정되었는지 검사 (.env.example 은 허용)
+  files="$(git diff --no-color --name-only "$range" 2>/dev/null \
+            | grep -E '(^|/)\.env$|(^|/)\.env\.[a-z]+$|(^|/)(id_rsa|id_ed25519)$|\.pem$|\.p12$|credentials$' \
+            | grep -vE '\.env\.example$' || true)"
+  if [ -n "$files" ]; then
+    found=1
+    report+="  [민감 파일 포함]\n$files\n"
+  fi
+done
+
+if [ "$found" -ne 0 ]; then
+  echo ""
+  echo "🚨 푸시 차단: 민감정보로 의심되는 내용이 감지되었습니다."
+  echo "────────────────────────────────────────────"
+  printf "%b" "$report"
+  echo "────────────────────────────────────────────"
+  echo "  • 실제 시크릿이면 히스토리에서 제거 후 다시 커밋하세요."
+  echo "  • 오탐이 확실하면:  ALLOW_SECRETS=1 git push"
+  echo ""
+  exit 1
+fi
+
+exit 0

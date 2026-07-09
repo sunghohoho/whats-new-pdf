@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>{{ meta.title }}</title>
+<style>
+  /* ── 폰트: Noto Sans KR을 프로젝트에 내장(오프라인에서도 엔지니어 간 동일 렌더링 보장) ── */
+  @font-face {
+    font-family: "Noto Sans KR"; font-style: normal; font-weight: 400;
+    src: url("assets/fonts/NotoSansKR-Regular.ttf") format("truetype");
+  }
+  @font-face {
+    font-family: "Noto Sans KR"; font-style: normal; font-weight: 500;
+    src: url("assets/fonts/NotoSansKR-Medium.ttf") format("truetype");
+  }
+  @font-face {
+    font-family: "Noto Sans KR"; font-style: normal; font-weight: 700;
+    src: url("assets/fonts/NotoSansKR-Bold.ttf") format("truetype");
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page {
+    size: A4;
+    margin: 16mm 15mm 16mm 15mm;
+  }
+
+  body {
+    font-family: "Noto Sans KR", "Noto Sans CJK KR", "Apple SD Gothic Neo", sans-serif;
+    color: #23262b;
+    font-size: 10.3pt;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── 화면 미리보기: A4 페이지처럼 보이게 (인쇄/PDF에는 영향 없음) ── */
+  @media screen {
+    html { background: #e9ecef; }
+    body {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto;
+      padding: 16mm 15mm;
+      background: #fff;
+      box-sizing: border-box;
+    }
+  }
+
+  /* ── 헤더 ── */
+  .doc-header {
+    border-bottom: 2.5px solid #16233b;
+    padding-bottom: 14px;
+    margin-bottom: 30px;
+  }
+  .doc-header .eyebrow {
+    font-size: 8.6pt;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: #d97706;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .doc-header h1 {
+    font-size: 21pt;
+    font-weight: 700;
+    color: #16233b;
+    line-height: 1.2;
+  }
+  .doc-header .subtitle {
+    font-size: 10pt;
+    color: #5b6472;
+    margin-top: 8px;
+  }
+  .doc-header .meta {
+    font-size: 8.6pt;
+    color: #8b93a1;
+    margin-top: 6px;
+  }
+
+  /* ── 인트로 안내 박스 ── */
+  .intro {
+    background: #f6f7f9;
+    border-left: 3px solid #16233b;
+    padding: 13px 18px;
+    font-size: 9.6pt;
+    color: #3c4048;
+    margin-bottom: 40px;
+  }
+
+  /* ── 섹션 ── */
+  .section {
+    margin-bottom: 44px;
+  }
+  .section-title {
+    border-left: 4px solid #d97706;
+    padding-left: 12px;
+    margin-bottom: 18px;
+  }
+  .section-title h2 {
+    font-size: 13.5pt;
+    font-weight: 700;
+    color: #16233b;
+    display: inline;
+  }
+  .section-title .note {
+    font-size: 8.8pt;
+    color: #9aa1ab;
+    font-weight: 400;
+    margin-left: 8px;
+  }
+
+  /* ── 표 ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  thead th {
+    text-transform: uppercase;
+    font-size: 8.1pt;
+    letter-spacing: 0.4px;
+    color: #7a828d;
+    background: #f6f7f9;
+    font-weight: 700;
+    text-align: left;
+    padding: 9px 12px;
+  }
+  tbody td {
+    border-bottom: 0.75px solid #eceef1;
+    padding: 11px 10px;
+    vertical-align: top;
+    font-size: 9.7pt;
+    /* 한글 단어는 유지하고, 긴 영문/날짜/URL은 필요 시 줄바꿈하여 칸 침범 방지 */
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.service { color: #23262b; font-weight: 500; }
+  td.target  { color: #565c65; }
+  td.date    { color: #4a5057; }
+  td.action  { color: #565c65; }
+  td.badge-cell { text-align: left; }
+
+  .col-service { width: 24%; }
+  .col-target  { width: 19%; }
+  .col-badge   { width: 9%; }
+  .col-date    { width: 15%; }
+  .col-action  { width: 33%; }
+
+  /* ── 배지 ── */
+  .badge {
+    display: inline-block;
+    font-size: 7.6pt;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 3px;
+    letter-spacing: 0.3px;
+    vertical-align: middle;
+  }
+  .badge-sunset { background: #fdecea; color: #b3261e; }
+  .badge-eos    { background: #eef1fd; color: #4148b0; }
+  .badge-ga     { background: #e6f0ff; color: #1257c4; }
+  .badge-preview{ background: #fff3e0; color: #b45309; }
+
+  /* ── 신규 출시: 새 페이지에서 시작 ── */
+  .section-new { page-break-before: always; }
+
+  /* ── 카드형 항목 (신규 출시) ── */
+  .new-item {
+    padding: 16px 0;
+    border-bottom: 0.75px solid #eceef1;
+  }
+  .new-item:last-child { border-bottom: none; }
+  .new-item .row1 {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    margin-bottom: 6px;
+  }
+  .new-item .row1 .title {
+    display: table-cell;
+    font-weight: 700;
+    color: #16233b;
+    font-size: 11pt;
+    vertical-align: middle;
+  }
+  .new-item .row1 .title .badge { margin-left: 7px; }
+  .new-item .row1 .title .region-note {
+    font-size: 8.6pt;
+    font-weight: 400;
+    color: #9aa1ab;
+    margin-left: 7px;
+  }
+  .new-item .row1 .date {
+    display: table-cell;
+    text-align: right;
+    width: 80px;
+    color: #9aa1ab;
+    font-size: 8.8pt;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  .new-item .body { color: #4a5057; font-size: 9.7pt; }
+  .new-item .url {
+    color: #8b93a1;
+    font-size: 8.4pt;
+    margin-top: 6px;
+    word-break: break-all;
+  }
+
+  /* 묶음(하위) 항목 */
+  .sub-item {
+    margin-top: 14px;
+    padding-left: 14px;
+    border-left: 2px solid #eceef1;
+  }
+  .sub-item .row1 .title { font-size: 10pt; }
+
+  .footer-note {
+    margin-top: 30px;
+    padding-top: 12px;
+    border-top: 0.75px solid #eceef1;
+    font-size: 8.4pt;
+    color: #9aa1ab;
+  }
+</style>
+</head>
+<body>
+
+  <header class="doc-header">
+    {% if meta.eyebrow %}<div class="eyebrow">{{ meta.eyebrow }}</div>{% endif %}
+    <h1>{{ meta.title }}</h1>
+    {% if meta.subtitle %}<div class="subtitle">{{ meta.subtitle }}</div>{% endif %}
+    {% if meta.written or meta.author %}
+    <div class="meta">
+      {% if meta.written %}작성일 {{ meta.written }}{% endif %}
+      {% if meta.written and meta.author %} &nbsp;·&nbsp; {% endif %}
+      {% if meta.author %}{{ meta.author }}{% endif %}
+    </div>
+    {% endif %}
+  </header>
+
+  {% if meta.intro %}
+  <div class="intro">{{ meta.intro }}</div>
+  {% endif %}
+
+  {# ─────────────── EOL / EOS ─────────────── #}
+  <section class="section">
+    <div class="section-title">
+      <h2>서비스 종료 예정 (EOL · EOS)</h2>
+      <span class="note">— 운영 중 서비스 종료 · 변경, 사전 조치 필요</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th class="col-service">서비스</th>
+          <th class="col-target">대상 버전 · 항목</th>
+          <th class="col-badge">구분</th>
+          <th class="col-date">종료 · 변경일</th>
+          <th class="col-action">전환 대상 · 조치</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in eol_eos %}
+        <tr>
+          <td class="service">{{ item.service }}</td>
+          <td class="target">{{ item.target or "—" }}</td>
+          <td class="badge-cell">
+            {% if item.badge %}<span class="badge badge-{{ item.badge }}">{{ item.badge | upper }}</span>{% endif %}
+          </td>
+          <td class="date">{{ item.date }}</td>
+          <td class="action">{{ item.action }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  {# ─────────────── NEW (새 페이지) ─────────────── #}
+  <section class="section section-new">
+    <div class="section-title">
+      <h2>신규 출시 및 업데이트</h2>
+      <span class="note">— 신규 기능 · 서비스 요약</span>
+    </div>
+
+    {% for item in whats_new %}
+    <div class="new-item">
+      <div class="row1">
+        <div class="title">
+          {{ item.title }}
+          {% if item.badge %}<span class="badge badge-{{ item.badge | lower }}">{{ item.badge | upper }}</span>{% endif %}
+        </div>
+        {% if item.date %}<div class="date">{{ item.date }}</div>{% endif %}
+      </div>
+      {% if item.body %}<div class="body">{{ item.body }}</div>{% endif %}
+      {% if item.url %}<div class="url">{{ item.url }}</div>{% endif %}
+
+      {% if item.subitems %}
+        {% for sub in item.subitems %}
+        <div class="sub-item">
+          <div class="row1">
+            <div class="title">
+              {{ sub.subtitle }}
+              {% if sub.badge %}<span class="badge badge-{{ sub.badge | lower }}">{{ sub.badge | upper }}</span>{% endif %}
+            </div>
+            {% if sub.date %}<div class="date">{{ sub.date }}</div>{% endif %}
+          </div>
+          {% if sub.body %}<div class="body">{{ sub.body }}</div>{% endif %}
+          {% if sub.url %}<div class="url">{{ sub.url }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    <div class="footer-note">
+      본 안내는 AWS 공식 발표(What's New) 기준으로 작성되었습니다. 최신 정보는 AWS 공식 페이지를 참고해 주세요.
+    </div>
+  </section>
+
+</body>
+</html>

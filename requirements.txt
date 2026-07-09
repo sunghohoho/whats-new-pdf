@@ -1,0 +1,9 @@
+Jinja2>=3.1
+PyYAML>=6.0
+playwright>=1.44
+fastapi>=0.110
+uvicorn[standard]>=0.29
+
+# ── 선택: LLM 자동 파싱을 쓸 때만 별도 설치 ──
+# OpenAI 호환 엔드포인트(사내 게이트웨이/OpenAI) 사용 시:  pip install openai
+# AWS Bedrock 사용 시:                                    pip install boto3
