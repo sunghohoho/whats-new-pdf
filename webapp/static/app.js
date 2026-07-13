@@ -201,13 +201,21 @@ $("#btnParse").addEventListener("click", async () => {
 
     const usedLlm = data._method === "llm";
     const tag = usedLlm ? "AI 파싱" : (CONFIG.llm_available ? "기본 파싱(폴백)" : "기본 파싱");
-    const summary = `${tag} 완료 · 종료 ${state.eol_eos.length}건, 신규 ${state.whats_new.length}건`;
-    progressFinish(true, summary);
-    toast(summary);
+    const msg = `${tag} 완료 · 종료 ${state.eol_eos.length}건, 신규 ${state.whats_new.length}건`;
+    progressFinish(true, msg);
+    toast(msg);
     showUsage(data._usage, usedLlm);
     if (data._llm_error) {
       console.warn("LLM 파싱 실패 → 기본 파서로 폴백:", data._llm_error);
       toast("LLM 호출 실패 → 기본 파서로 처리했어요");
+    }
+
+    // 파싱 직후 두괄식 요약 자동 생성 (앞단에 바로 표시)
+    try {
+      await generateSummary({ silent: true });
+      toast("두괄식 요약도 자동 생성했어요");
+    } catch (e) {
+      console.warn("요약 자동 생성 실패:", e);
     }
   } catch (e) {
     progressFinish(false, "파싱 실패: " + e.message);
@@ -272,26 +280,34 @@ $("#btnPdf").addEventListener("click", async () => {
 
 $("#btnSample").addEventListener("click", () => loadSample());
 
-// ── 두괄식 요약 AI 생성 ──────────────────────────────────────
+// ── 두괄식 요약 AI 생성 (버튼 + 파싱 후 자동 호출 공용) ──────────
+async function generateSummary(opts = {}) {
+  const { silent = false } = opts;
+  if (!state.eol_eos.length && !state.whats_new.length) {
+    if (!silent) toast("먼저 항목을 채워주세요");
+    return;
+  }
+  const res = await fetch("/api/generate-summary", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(state),
+  });
+  const data = await res.json();
+  if (data.summary) {
+    state.meta.summary = data.summary;
+    const el = document.querySelector("[data-meta='summary']");
+    if (el) el.value = data.summary;
+    schedulePreview();
+    if (!silent) toast("두괄식 요약 생성 완료");
+  }
+}
+
 $("#btnSummary").addEventListener("click", async () => {
   const btn = $("#btnSummary");
   const old = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner-dark" style="width:11px;height:11px;margin-right:5px;"></span>생성 중…';
   try {
-    const res = await fetch("/api/generate-summary", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(state),
-    });
-    const data = await res.json();
-    if (data.summary) {
-      state.meta.summary = data.summary;
-      // 폼 필드 갱신
-      const el = document.querySelector("[data-meta='summary']");
-      if (el) el.value = data.summary;
-      schedulePreview();
-      toast("두괄식 요약 생성 완료");
-    }
+    await generateSummary();
   } catch (e) {
     toast("요약 생성 중 오류가 발생했습니다");
   } finally {
