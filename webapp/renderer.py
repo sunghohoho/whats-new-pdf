@@ -6,6 +6,7 @@ generate.py(CLI)와 server.py(웹) 양쪽에서 동일하게 사용하여
 
 from __future__ import annotations
 
+import base64
 import tempfile
 from pathlib import Path
 
@@ -14,6 +15,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 ROOT = Path(__file__).resolve().parent.parent
 TEMPLATE_DIR = ROOT / "templates"
 TEMPLATE_NAME = "report.html.j2"
+LOGO_PATH = ROOT / "assets" / "logo.png"
 
 _env = Environment(
     loader=FileSystemLoader(str(TEMPLATE_DIR)),
@@ -21,6 +23,14 @@ _env = Environment(
     trim_blocks=True,
     lstrip_blocks=True,
 )
+
+
+def _logo_data_uri() -> str:
+    """로고를 base64 data URI로 반환. 파일이 없으면 빈 문자열."""
+    if not LOGO_PATH.exists():
+        return ""
+    data = base64.b64encode(LOGO_PATH.read_bytes()).decode()
+    return f"data:image/png;base64,{data}"
 
 
 def normalize(data: dict) -> dict:
@@ -35,14 +45,21 @@ def normalize(data: dict) -> dict:
 def render_html(data: dict, *, for_preview: bool = False) -> str:
     """데이터로 HTML 문자열 생성.
 
-    for_preview=True 이면 폰트 경로를 브라우저에서 접근 가능한
-    절대 URL(/assets/...)로 만들어 웹 미리보기에서도 폰트가 뜨게 한다.
+    for_preview=True 이면 폰트/로고 경로를 브라우저에서 접근 가능한
+    절대 URL(/assets/...)로 만들어 웹 미리보기에서도 보이게 한다.
+    PDF(for_preview=False)에는 base64 data URI로 로고를 임베드한다.
     """
     data = normalize(data)
     template = _env.get_template(TEMPLATE_NAME)
-    html = template.render(**data)
+
     if for_preview:
-        # 정적 서버가 /assets 로 폰트를 제공하므로 상대경로를 루트경로로 치환
+        logo_src = "/assets/logo.png"
+    else:
+        logo_src = _logo_data_uri()
+
+    html = template.render(**data, logo_src=logo_src)
+
+    if for_preview:
         html = html.replace('url("assets/fonts/', 'url("/assets/fonts/')
     return html
 

@@ -51,6 +51,22 @@
     border-bottom: 2.5px solid #16233b;
     padding-bottom: 14px;
     margin-bottom: 30px;
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+  .doc-header-left { display: table-cell; vertical-align: bottom; }
+  .doc-header-logo {
+    display: table-cell;
+    vertical-align: bottom;
+    text-align: right;
+    width: 130px;
+    padding-bottom: 4px;
+  }
+  .doc-header-logo img {
+    height: 26px;     /* 작게, 한 줄 높이 기준 */
+    width: auto;
+    opacity: 0.88;    /* 살짝 소프트하게 */
   }
   .doc-header .eyebrow {
     font-size: 8.6pt;
@@ -246,14 +262,21 @@
 <body>
 
   <header class="doc-header">
-    {% if meta.eyebrow %}<div class="eyebrow">{{ meta.eyebrow }}</div>{% endif %}
-    <h1>{{ meta.title }}</h1>
-    {% if meta.subtitle %}<div class="subtitle">{{ meta.subtitle }}</div>{% endif %}
-    {% if meta.written or meta.author %}
-    <div class="meta">
-      {% if meta.written %}작성일 {{ meta.written }}{% endif %}
-      {% if meta.written and meta.author %} &nbsp;·&nbsp; {% endif %}
-      {% if meta.author %}{{ meta.author }}{% endif %}
+    <div class="doc-header-left">
+      {% if meta.eyebrow %}<div class="eyebrow">{{ meta.eyebrow }}</div>{% endif %}
+      <h1>{{ meta.title }}</h1>
+      {% if meta.subtitle %}<div class="subtitle">{{ meta.subtitle }}</div>{% endif %}
+      {% if meta.written or meta.author %}
+      <div class="meta">
+        {% if meta.written %}작성일 {{ meta.written }}{% endif %}
+        {% if meta.written and meta.author %} &nbsp;·&nbsp; {% endif %}
+        {% if meta.author %}{{ meta.author }}{% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% if logo_src %}
+    <div class="doc-header-logo">
+      <img src="{{ logo_src }}" alt="Company Logo">
     </div>
     {% endif %}
   </header>
