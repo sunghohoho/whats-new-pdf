@@ -38,7 +38,7 @@ SCHEMA_HINT = """{
       "target": "대상 버전/항목 (없으면 빈 문자열)",
       "date": "종료·변경일 (원문 표기 유지)",
       "action": "전환 대상/조치/비고",
-      "badge": "sunset 또는 eos"
+      "badge": "eol 또는 eos"
     }
   ],
   "whats_new": [
@@ -74,10 +74,10 @@ SYSTEM_PROMPT = f"""너는 AWS 서비스 변경사항 공지 텍스트를 구조
   - 예: "Amazon EKS - Kubernetes 1.31 확장 지원" -> service="Amazon EKS - Kubernetes", target="1.31 확장 지원"
   - 버전/대상이 없으면 target 은 빈 문자열.
 - badge 판정 (하위 섹션 개념으로 일관되게 분류):
-  - Sunset(운영 중 서비스 종료/EOL) → "sunset"
+  - Sunset(운영 중 서비스 종료/EOL) → "eol"
   - Maintenance(신규 가입 중단, 기존 고객만 유지) → "eos"
   - SDK/도구 지원 종료(EOS), 요금 변경, 지표/방식 변경 → "eos"
-- 'Sunset', 'Maintenance', 'SDK/도구' 같은 하위 섹션 헤더는 행이 아니다.
+- 'Sunset', 'EOL', 'Maintenance', 'SDK/도구' 같은 하위 섹션 헤더는 행이 아니다.
   그 아래 항목들에 공통 날짜/조치/배지를 적용한다.
 - 서비스 그룹핑 규칙(일관성 유지):
   - 같은 종료일 + 같은 조치를 공유하고 개별 전환 대상이 없으면
@@ -189,9 +189,12 @@ def normalize(data: dict) -> dict:
 
     eol = []
     for r in data.get("eol_eos") or []:
-        badge = str(r.get("badge", "sunset")).lower()
-        if badge not in ("sunset", "eos"):
-            badge = "sunset"
+        badge = str(r.get("badge", "eol")).lower()
+        # 하위 호환: 기존 "sunset" 값도 "eol"로 처리
+        if badge == "sunset":
+            badge = "eol"
+        if badge not in ("eol", "eos"):
+            badge = "eol"
         eol.append(
             {
                 "service": r.get("service", ""),

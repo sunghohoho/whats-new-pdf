@@ -54,7 +54,7 @@ function bindMeta() {
 }
 
 // ── EOL/EOS 렌더 ─────────────────────────────────────────────
-const BADGES_EOL = [["sunset", "SUNSET (EOL)"], ["eos", "EOS (변경/종료)"]];
+const BADGES_EOL = [["eol", "EOL (서비스 종료)"], ["eos", "EOS (변경/종료)"]];
 function renderEol() {
   const list = $("#eolList"); list.innerHTML = "";
   state.eol_eos.forEach((item, i) => {
@@ -168,7 +168,7 @@ function renderAll() { bindMeta(); renderEol(); renderNew(); schedulePreview(); 
 
 // ── 버튼 동작 ────────────────────────────────────────────────
 $("#btnAddEol").addEventListener("click", () => {
-  state.eol_eos.push({ service: "", target: "", date: "", action: "", badge: "sunset" });
+  state.eol_eos.push({ service: "", target: "", date: "", action: "", badge: "eol" });
   renderEol(); schedulePreview();
 });
 $("#btnAddNew").addEventListener("click", () => {

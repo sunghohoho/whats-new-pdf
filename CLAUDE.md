@@ -59,7 +59,7 @@ macOS · Windows · Linux 에서 동일하게 동작한다.
 
 - 파싱 규칙(`parser.py`)과 LLM 프롬프트(`llm_parser.py`)와 생성 프롬프트(`docs/PROMPT.md`)는
   **같은 규칙**을 공유한다. 한쪽을 바꾸면 나머지도 함께 맞춘다.
-- badge: 운영 종료/Sunset/EOL → `sunset`, 신규가입중단/Maintenance/SDK EOS/요금·방식 변경 → `eos`.
+- badge: 운영 종료/EOL → `eol`, 신규가입중단/Maintenance/SDK EOS/요금·방식 변경 → `eos`.
 - 신규 항목 설명은 항상 `body` 한 곳으로 모아 렌더링(제목 옆 인라인 금지).
 - 날짜 YYYY.MM.DD 통일, 신규는 최신순, 없는 값(날짜/URL)은 지어내지 않는다.
 

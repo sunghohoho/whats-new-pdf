@@ -27,7 +27,7 @@
 [EOL / EOS 골격]
 EOL / EOS
 
-Sunset
+EOL
 <서비스명> <버전(있으면)> — <종료일> 종료 → <전환 대상>
 # 전환 대상이 없고 여러 서비스가 같은 날 종료면 한 줄로 묶기:
 <서비스1> · <서비스2> · <서비스3> — <종료일> 종료
@@ -52,7 +52,7 @@ SDK / 도구
 
 [규칙 상세]
 - 서비스명과 버전은 이어서 적되(예: "Aurora MySQL 3.05 / 3.06"), 파서가 자동 분리한다.
-- Sunset = 운영 종료(EOL), Maintenance = 신규가입 중단, SDK/도구 = EOS.
+- EOL = 운영 종료(서비스 완전 종료, 마이그레이션 필수), Maintenance = 신규가입 중단, SDK/도구 = EOS.
 - NEW 배지는 GA/PREVIEW가 공식 발표에 명시된 경우에만 괄호 안에 표기. 추측 금지.
 - 한 발표에 세부 항목이 여러 개(각각 링크)면 제목 아래에 들여쓰기해 나열.
 ```
@@ -64,7 +64,7 @@ SDK / 도구
 ```
 EOL / EOS
 
-Sunset
+EOL
 AWS WAF Classic — 2026.10.07 종료 → WAFv2
 AWS App Mesh — 2026.09.30 종료 → ECS Service Connect
 FinSpace · Fraud Detector · Lookout for Equipment — 2026.10.07 종료

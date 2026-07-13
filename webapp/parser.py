@@ -34,7 +34,7 @@ _SEC_NEW = re.compile(r"^\s*(new|신규)\b", re.I)
 
 # 하위 섹션 헤더 -> (배지, 기본 조치)
 _SUBHEADERS = [
-    (re.compile(r"^\s*sunset\b", re.I), "sunset", ""),
+    (re.compile(r"^\s*sunset\b", re.I), "eol", ""),
     (re.compile(r"^\s*maintenance\b", re.I), "eos", "신규 가입 차단"),
     (re.compile(r"^\s*(sdk|개발\s*도구|도구)\b", re.I), "eos", ""),
 ]
@@ -80,11 +80,12 @@ def _parse_eol_row(line: str, ctx_badge: str, ctx_action: str, ctx_date: str) ->
     if not raw:
         return None
 
-    # 명시적 구분 마커 {sunset} | {eos} (표준 형식)
+    # 명시적 구분 마커 {eol} | {eos} (표준 형식, 하위 호환: {sunset}도 eol로 처리)
     explicit_badge = None
-    mb = re.search(r"\{\s*(sunset|eos)\s*\}", raw, re.I)
+    mb = re.search(r"\{\s*(sunset|eol|eos)\s*\}", raw, re.I)
     if mb:
-        explicit_badge = mb.group(1).lower()
+        raw_badge = mb.group(1).lower()
+        explicit_badge = "eol" if raw_badge == "sunset" else raw_badge
         raw = (raw[: mb.start()] + raw[mb.end() :]).strip()
 
     # 서비스 / 상세 분리 (em대시 우선)
@@ -129,9 +130,9 @@ def _parse_eol_row(line: str, ctx_badge: str, ctx_action: str, ctx_date: str) ->
     elif "신규 가입" in raw or "중단" in raw:
         badge = "eos"
     elif "종료" in raw:
-        badge = ctx_badge or "sunset"
+        badge = ctx_badge or "eol"
     else:
-        badge = ctx_badge or "sunset"
+        badge = ctx_badge or "eol"
 
     return {"service": service, "target": target, "date": date, "action": action, "badge": badge}
 
@@ -233,7 +234,7 @@ def parse_script(text: str) -> dict:
 
     # ── EOL/EOS (하위 섹션 컨텍스트 유지) ──
     eol_eos = []
-    ctx_badge, ctx_action, ctx_date = "sunset", "", ""
+    ctx_badge, ctx_action, ctx_date = "eol", "", ""
     for ln in eol_lines:
         if not ln.strip():
             continue
