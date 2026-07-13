@@ -272,6 +272,34 @@ $("#btnPdf").addEventListener("click", async () => {
 
 $("#btnSample").addEventListener("click", () => loadSample());
 
+// ── 두괄식 요약 AI 생성 ──────────────────────────────────────
+$("#btnSummary").addEventListener("click", async () => {
+  const btn = $("#btnSummary");
+  const old = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-dark" style="width:11px;height:11px;margin-right:5px;"></span>생성 중…';
+  try {
+    const res = await fetch("/api/generate-summary", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(state),
+    });
+    const data = await res.json();
+    if (data.summary) {
+      state.meta.summary = data.summary;
+      // 폼 필드 갱신
+      const el = document.querySelector("[data-meta='summary']");
+      if (el) el.value = data.summary;
+      schedulePreview();
+      toast("두괄식 요약 생성 완료");
+    }
+  } catch (e) {
+    toast("요약 생성 중 오류가 발생했습니다");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = old;
+  }
+});
+
 // ── 샘플 ─────────────────────────────────────────────────────
 async function loadSample() {
   const res = await fetch("/static/sample.json");

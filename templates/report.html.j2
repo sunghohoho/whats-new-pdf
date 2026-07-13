@@ -101,7 +101,19 @@
     font-size: 9.6pt;
     color: #3c4048;
     margin-bottom: 40px;
+    line-height: 1.7;
   }
+  /* 두괄식 요약 박스: intro 위에 위치, 핵심 내용 강조 */
+  .summary-box {
+    background: #f6f7f9;
+    border-left: 3px solid #16233b;
+    padding: 13px 18px;
+    font-size: 9.6pt;
+    color: #3c4048;
+    margin-bottom: 12px;
+    line-height: 1.7;
+  }
+  .summary-box strong { color: #16233b; font-weight: 700; }
 
   /* ── 섹션 ── */
   .section {
@@ -281,6 +293,10 @@
     {% endif %}
   </header>
 
+  {% if meta.summary %}
+  <div class="summary-box">{{ meta.summary | safe }}</div>
+  {% endif %}
+
   {% if meta.intro %}
   <div class="intro">{{ meta.intro }}</div>
   {% endif %}
@@ -367,7 +383,7 @@
     {% endfor %}
 
     <div class="footer-note">
-      본 안내는 AWS 공식 발표(What's New) 기준으로 작성되었습니다. 최신 정보는 AWS 공식 페이지를 참고해 주세요.
+      최신 정보는 AWS 공식 페이지를 참고해 주세요.
     </div>
   </section>
 

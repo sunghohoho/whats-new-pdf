@@ -23,6 +23,7 @@ from fastapi.staticfiles import StaticFiles
 
 from . import llm_parser, renderer
 from .parser import parse_script
+from .summary import generate_summary
 from .url_checker import check_urls
 
 logger = logging.getLogger("aws_report_studio")
@@ -128,6 +129,13 @@ def api_parse(payload: dict) -> dict:
     data = parse_script(text)
     data["_method"] = "heuristic"
     return _consolidate_new(data)
+
+
+@app.post("/api/generate-summary")
+def api_generate_summary(payload: dict) -> dict:
+    """EOL/EOS + 신규 항목 데이터를 보고 두괄식 요약 HTML을 생성."""
+    summary = generate_summary(payload or {})
+    return {"summary": summary}
 
 
 @app.post("/api/preview", response_class=HTMLResponse)
