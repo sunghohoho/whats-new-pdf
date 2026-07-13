@@ -23,6 +23,7 @@ from fastapi.staticfiles import StaticFiles
 
 from . import llm_parser, renderer
 from .parser import parse_script
+from .url_checker import check_urls
 
 logger = logging.getLogger("aws_report_studio")
 
@@ -131,14 +132,48 @@ def api_parse(payload: dict) -> dict:
 
 @app.post("/api/preview", response_class=HTMLResponse)
 def api_preview(payload: dict) -> HTMLResponse:
-    html = renderer.render_html(payload or {}, for_preview=True)
+    # check_urls=true 파라미터가 있을 때만 URL 체크 (미리보기 속도 우선)
+    data = dict(payload or {})
+    if data.pop("check_urls", False):
+        data = check_urls(data)
+    html = renderer.render_html(data, for_preview=True)
     return HTMLResponse(html)
+
+
+@app.post("/api/check-urls")
+def api_check_urls(payload: dict) -> dict:
+    """URL 유효성 검사만 수행하고 결과를 반환 (프론트 진행 표시용)."""
+    data = check_urls(dict(payload or {}))
+    # 죽은 링크 요약만 추출해서 반환
+    dead = []
+    for item in data.get("whats_new") or []:
+        s = item.get("url_status") or {}
+        if s.get("dead"):
+            dead.append(
+                {"title": item.get("title", ""), "url": item.get("url", ""), "code": s.get("code")}
+            )
+        for sub in item.get("subitems") or []:
+            s2 = sub.get("url_status") or {}
+            if s2.get("dead"):
+                dead.append(
+                    {
+                        "title": sub.get("subtitle", ""),
+                        "url": sub.get("url", ""),
+                        "code": s2.get("code"),
+                    }
+                )
+    return {
+        "data": data,
+        "dead": dead,
+        "total": len([i for i in (data.get("whats_new") or []) if i.get("url")]),
+    }
 
 
 @app.post("/api/pdf")
 def api_pdf(payload: dict) -> Response:
-    # PDF는 내장 폰트 상대경로를 그대로 사용 (for_preview=False)
-    html = renderer.render_html(payload or {}, for_preview=False)
+    # PDF 생성 전 항상 URL 체크 (죽은 링크를 취소선으로 표시)
+    data = check_urls(dict(payload or {}))
+    html = renderer.render_html(data, for_preview=False)
     pdf_bytes = renderer.html_to_pdf_bytes(html)
 
     meta = (payload or {}).get("meta", {}) or {}

@@ -228,11 +228,31 @@ $("#btnPdf").addEventListener("click", async () => {
   const btn = $("#btnPdf");
   btn.disabled = true;
   const old = btn.innerHTML;
-  btn.innerHTML = '<span class="spinner"></span>생성 중…';
+
   try {
-    const res = await fetch("/api/pdf", {
+    // 1단계: URL 유효성 검사
+    btn.innerHTML = '<span class="spinner"></span>링크 확인 중…';
+    const chkRes = await fetch("/api/check-urls", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify(state),
+    });
+    const chkData = await chkRes.json();
+
+    if (chkData.dead && chkData.dead.length > 0) {
+      const deadList = chkData.dead.map(d => `• ${d.title || d.url} (${d.code || "unreachable"})`).join("\n");
+      const proceed = confirm(
+        `⚠️ 접근 불가 링크 ${chkData.dead.length}개가 발견됐어요:\n\n${deadList}\n\n계속 PDF를 생성할까요? (죽은 링크는 취소선으로 표시됩니다)`
+      );
+      if (!proceed) { btn.disabled = false; btn.innerHTML = old; return; }
+    }
+
+    // 2단계: PDF 생성 (서버에서 url_status 포함해 렌더링)
+    btn.innerHTML = '<span class="spinner"></span>PDF 생성 중…';
+    // check-urls 결과(url_status 포함된 data)를 그대로 PDF 요청에 활용
+    const pdfState = chkData.data || state;
+    const res = await fetch("/api/pdf", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(pdfState),
     });
     if (!res.ok) throw new Error("생성 실패");
     const blob = await res.blob();

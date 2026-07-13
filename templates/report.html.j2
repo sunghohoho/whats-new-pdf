@@ -202,10 +202,28 @@
   }
   .new-item .body { color: #4a5057; font-size: 9.7pt; }
   .new-item .url {
-    color: #8b93a1;
     font-size: 8.4pt;
     margin-top: 6px;
     word-break: break-all;
+  }
+  .new-item .url a {
+    color: #0071e3;
+    text-decoration: none;
+  }
+  .new-item .url a:hover { text-decoration: underline; }
+  .new-item .url.url-dead a {
+    color: #b3261e;
+    text-decoration: line-through;
+  }
+  .url-warn {
+    display: inline-block;
+    font-size: 7.4pt;
+    color: #b3261e;
+    background: #fdecea;
+    border-radius: 3px;
+    padding: 1px 5px;
+    margin-left: 5px;
+    vertical-align: middle;
   }
 
   /* 묶음(하위) 항목 */
@@ -243,6 +261,18 @@
   {% if meta.intro %}
   <div class="intro">{{ meta.intro }}</div>
   {% endif %}
+
+  {# ── URL 렌더 매크로 (하이퍼링크 + 죽은 링크 표시) ── #}
+  {%- macro render_url(url, status) -%}
+    {%- if url -%}
+      {%- set dead = status.dead if status else false -%}
+      {%- set code = status.code if status else none -%}
+      <div class="url{% if dead %} url-dead{% endif %}">
+        <a href="{{ url }}" target="_blank">{{ url }}</a>
+        {%- if dead %}<span class="url-warn">⚠ {{ code or 'unreachable' }}</span>{%- endif %}
+      </div>
+    {%- endif -%}
+  {%- endmacro -%}
 
   {# ─────────────── EOL / EOS ─────────────── #}
   <section class="section">
@@ -293,7 +323,7 @@
         {% if item.date %}<div class="date">{{ item.date }}</div>{% endif %}
       </div>
       {% if item.body %}<div class="body">{{ item.body }}</div>{% endif %}
-      {% if item.url %}<div class="url">{{ item.url }}</div>{% endif %}
+      {{ render_url(item.url, item.url_status if item.url_status is defined else none) }}
 
       {% if item.subitems %}
         {% for sub in item.subitems %}
@@ -306,7 +336,7 @@
             {% if sub.date %}<div class="date">{{ sub.date }}</div>{% endif %}
           </div>
           {% if sub.body %}<div class="body">{{ sub.body }}</div>{% endif %}
-          {% if sub.url %}<div class="url">{{ sub.url }}</div>{% endif %}
+          {{ render_url(sub.url, sub.url_status if sub.url_status is defined else none) }}
         </div>
         {% endfor %}
       {% endif %}
